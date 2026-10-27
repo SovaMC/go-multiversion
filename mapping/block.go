@@ -103,6 +103,13 @@ type nativeTable struct {
 	states  []BlockState
 	byKey   map[string]uint32
 	aliases map[string]uint32
+	// keys, aliasKeys and compatibleKeys hold the state key, the compatibility
+	// alias key and the key without native-only visual properties of every
+	// runtime ID. stripped reports whether that last key differs.
+	keys           []string
+	aliasKeys      []string
+	compatibleKeys []string
+	stripped       []bool
 }
 
 var (
@@ -140,10 +147,15 @@ func nativeTableOf(native BlockRegistry) (*nativeTable, error) {
 }
 
 func buildNativeTable(native BlockRegistry) (*nativeTable, error) {
+	count := native.BlockCount()
 	table := &nativeTable{
-		states:  make([]BlockState, native.BlockCount()),
-		byKey:   make(map[string]uint32, native.BlockCount()),
-		aliases: make(map[string]uint32),
+		states:         make([]BlockState, count),
+		byKey:          make(map[string]uint32, count),
+		aliases:        make(map[string]uint32),
+		keys:           make([]string, count),
+		aliasKeys:      make([]string, count),
+		compatibleKeys: make([]string, count),
+		stripped:       make([]bool, count),
 	}
 	for index := range native.BlockCount() {
 		runtimeID := uint32(index)
@@ -170,6 +182,14 @@ func buildNativeTable(native BlockRegistry) (*nativeTable, error) {
 			table.aliases[aliasKey] = runtimeID
 		}
 		table.states[index] = BlockState{Name: name, Properties: cloneProperties(properties)}
+		table.keys[index], table.aliasKeys[index] = key, aliasKey
+		stripped := stripNativeCompatibilityProperties(properties)
+		table.compatibleKeys[index], table.stripped[index] = key, len(stripped) != len(properties)
+		if table.stripped[index] {
+			if table.compatibleKeys[index], err = StateKey(name, stripped); err != nil {
+				return nil, fmt.Errorf("native runtime ID %d compatible state: %w", runtimeID, err)
+			}
+		}
 	}
 	return table, nil
 }
@@ -188,6 +208,42 @@ func internState(key string, state BlockState) (string, BlockState) {
 	return canonical.key, BlockState{Name: canonical.state.Name, Properties: canonical.state.Properties, Version: state.Version}
 }
 
+type upgradeKey struct {
+	key     string
+	version int32
+}
+
+var (
+	upgradedMu   sync.Mutex
+	upgradedKeys = map[upgradeKey]string{}
+)
+
+// upgradedStateKey returns the state key of a historical state after
+// upgrading it to the current version. Results are shared between protocols,
+// most of which carry the same states.
+func upgradedStateKey(key string, state BlockState) (string, bool) {
+	id := upgradeKey{key: key, version: state.Version}
+	upgradedMu.Lock()
+	upgraded, ok := upgradedKeys[id]
+	upgradedMu.Unlock()
+	if ok {
+		return upgraded, upgraded != ""
+	}
+	result := blockupgrader.Upgrade(blockupgrader.BlockState{
+		Name:       state.Name,
+		Properties: cloneProperties(state.Properties),
+		Version:    state.Version,
+	})
+	upgraded, err := StateKey(result.Name, result.Properties)
+	if err != nil {
+		upgraded = ""
+	}
+	upgradedMu.Lock()
+	upgradedKeys[id] = upgraded
+	upgradedMu.Unlock()
+	return upgraded, upgraded != ""
+}
+
 func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bool) (*BlockMapper, error) {
 	if native == nil {
 		return nil, fmt.Errorf("native block registry is nil")
@@ -200,6 +256,7 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 	}
 
 	targetByKey := make(map[string]uint32, len(targetStates))
+	targetKeys := make([]string, len(targetStates))
 	targetAir, foundAir := uint32(0), false
 	for index, state := range targetStates {
 		key, err := StateKey(state.Name, state.Properties)
@@ -210,6 +267,7 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 			return nil, fmt.Errorf("duplicate target block state %s at runtime ID %d", state.Name, index)
 		}
 		key, targetStates[index] = internState(key, state)
+		targetKeys[index] = key
 		targetByKey[key] = uint32(index)
 		if state.Name == "minecraft:air" {
 			targetAir, foundAir = uint32(index), true
@@ -229,8 +287,7 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 	targetCompatibleByNativeKey := make(map[string]uint32, len(targetStates))
 	unresolved := make([]string, 0)
 	for targetRuntimeID, state := range targetStates {
-		key, _ := StateKey(state.Name, state.Properties)
-		nativeRuntimeID, ok := nativeByKey[key]
+		nativeRuntimeID, ok := nativeByKey[targetKeys[targetRuntimeID]]
 		if !ok {
 			// New native releases may move client-derived visual state into the
 			// server registry. Older targets omit these properties entirely, so
@@ -279,11 +336,7 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 			}
 		}
 		targetToNative[targetRuntimeID] = nativeRuntimeID
-		resolved := nativeStates[nativeRuntimeID]
-		compatibleKey, err := StateKey(resolved.Name, stripNativeCompatibilityProperties(resolved.Properties))
-		if err != nil {
-			return nil, fmt.Errorf("resolved target runtime ID %d: %w", targetRuntimeID, err)
-		}
+		compatibleKey := table.compatibleKeys[nativeRuntimeID]
 		if _, exists := targetCompatibleByNativeKey[compatibleKey]; !exists {
 			targetCompatibleByNativeKey[compatibleKey] = uint32(targetRuntimeID)
 		}
@@ -296,20 +349,16 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 	nativeExact := make([]bool, native.BlockCount())
 	for runtimeID := range nativeToTarget {
 		nativeToTarget[runtimeID] = targetAir
-		state := nativeStates[runtimeID]
-		key, _ := StateKey(state.Name, state.Properties)
-		if targetRuntimeID, ok := targetByKey[key]; ok {
+		if targetRuntimeID, ok := targetByKey[table.keys[runtimeID]]; ok {
 			nativeToTarget[runtimeID], nativeExact[runtimeID] = targetRuntimeID, true
 			continue
 		}
-		aliasKey, _ := StateKey(state.Name, nativeCompatibilityProperties(state.Name, state.Properties))
-		if targetRuntimeID, ok := targetByKey[aliasKey]; ok {
+		if targetRuntimeID, ok := targetByKey[table.aliasKeys[runtimeID]]; ok {
 			nativeToTarget[runtimeID], nativeExact[runtimeID] = targetRuntimeID, true
 			continue
 		}
-		stripped := stripNativeCompatibilityProperties(state.Properties)
-		if len(stripped) != len(state.Properties) {
-			compatibleKey, _ := StateKey(state.Name, stripped)
+		if table.stripped[runtimeID] {
+			compatibleKey := table.compatibleKeys[runtimeID]
 			if targetRuntimeID, ok := targetByKey[compatibleKey]; ok {
 				nativeToTarget[runtimeID], nativeExact[runtimeID] = targetRuntimeID, true
 				continue
@@ -329,13 +378,8 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 		// a native state it was later flattened into (brown_mushroom_block with
 		// huge_mushroom_bits 15 into mushroom_stem) has no reverse mapping yet.
 		for targetRuntimeID, state := range targetStates {
-			upgraded := blockupgrader.Upgrade(blockupgrader.BlockState{
-				Name:       state.Name,
-				Properties: cloneProperties(state.Properties),
-				Version:    state.Version,
-			})
-			upgradedKey, err := StateKey(upgraded.Name, upgraded.Properties)
-			if err != nil {
+			upgradedKey, ok := upgradedStateKey(targetKeys[targetRuntimeID], state)
+			if !ok {
 				continue
 			}
 			nativeRuntimeID, ok := nativeByKey[upgradedKey]
