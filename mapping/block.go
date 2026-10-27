@@ -3,11 +3,45 @@ package mapping
 import (
 	"fmt"
 	"hash/fnv"
+	"slices"
 	"sort"
 	"strings"
 
 	"github.com/df-mc/worldupgrader/blockupgrader"
 )
+
+// legacyBlockNames maps native blocks that were split out of a single legacy
+// block whose variant lived in block entity data rather than in the block
+// state, so no historical state upgrades into them.
+var legacyBlockNames = map[string]legacyBlock{
+	"minecraft:skeleton_skull":        legacySkull,
+	"minecraft:wither_skeleton_skull": legacySkull,
+	"minecraft:zombie_head":           legacySkull,
+	"minecraft:player_head":           legacySkull,
+	"minecraft:creeper_head":          legacySkull,
+	"minecraft:dragon_head":           legacySkull,
+	"minecraft:piglin_head":           legacySkull,
+}
+
+// legacyBlock is the legacy identifier of a split block together with the
+// states only the legacy block carried, tried when the native states alone
+// do not match.
+type legacyBlock struct {
+	name     string
+	defaults map[string]any
+}
+
+var legacySkull = legacyBlock{name: "minecraft:skull", defaults: map[string]any{"no_drop_bit": uint8(0)}}
+
+func (b legacyBlock) variants(properties map[string]any) []map[string]any {
+	extended := cloneProperties(properties)
+	for key, value := range b.defaults {
+		if _, ok := extended[key]; !ok {
+			extended[key] = value
+		}
+	}
+	return []map[string]any{properties, extended}
+}
 
 // BlockRegistry is the native registry surface required to build a direct
 // protocol mapping. Dragonfly's world.BlockRegistry satisfies this interface.
@@ -217,6 +251,49 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 	for targetRuntimeID, nativeRuntimeID := range targetToNative {
 		if !nativeExact[nativeRuntimeID] {
 			nativeToTarget[nativeRuntimeID], nativeExact[nativeRuntimeID] = uint32(targetRuntimeID), true
+		}
+	}
+	if slices.Contains(nativeExact, false) {
+		// A target state that still exists natively resolves to itself above, so
+		// a native state it was later flattened into (brown_mushroom_block with
+		// huge_mushroom_bits 15 into mushroom_stem) has no reverse mapping yet.
+		for targetRuntimeID, state := range targetStates {
+			upgraded := blockupgrader.Upgrade(blockupgrader.BlockState{
+				Name:       state.Name,
+				Properties: cloneProperties(state.Properties),
+				Version:    state.Version,
+			})
+			upgradedKey, err := StateKey(upgraded.Name, upgraded.Properties)
+			if err != nil {
+				continue
+			}
+			nativeRuntimeID, ok := nativeByKey[upgradedKey]
+			if !ok {
+				nativeRuntimeID, ok = nativeAliases[upgradedKey]
+			}
+			if ok && !nativeExact[nativeRuntimeID] {
+				nativeToTarget[nativeRuntimeID], nativeExact[nativeRuntimeID] = uint32(targetRuntimeID), true
+			}
+		}
+		for runtimeID, exact := range nativeExact {
+			if exact {
+				continue
+			}
+			state := nativeStates[runtimeID]
+			legacy, ok := legacyBlockNames[state.Name]
+			if !ok {
+				continue
+			}
+			for _, properties := range legacy.variants(state.Properties) {
+				legacyKey, err := StateKey(legacy.name, properties)
+				if err != nil {
+					continue
+				}
+				if targetRuntimeID, ok := targetByKey[legacyKey]; ok {
+					nativeToTarget[runtimeID], nativeExact[runtimeID] = targetRuntimeID, true
+					break
+				}
+			}
 		}
 	}
 	fallbacks := make([]BlockFallback, 0)
