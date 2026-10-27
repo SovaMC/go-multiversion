@@ -3,9 +3,11 @@ package mapping
 import (
 	"fmt"
 	"hash/fnv"
+	"reflect"
 	"slices"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/df-mc/worldupgrader/blockupgrader"
 )
@@ -94,6 +96,98 @@ func NewBlockMapperWithTargetOrder(native BlockRegistry, historical []BlockState
 	return newBlockMapper(native, historical, false)
 }
 
+// nativeTable is the immutable lookup data of one native registry. It is
+// shared by every block mapper built against that registry, as all supported
+// protocols map to the same native states.
+type nativeTable struct {
+	states  []BlockState
+	byKey   map[string]uint32
+	aliases map[string]uint32
+}
+
+var (
+	nativeTablesMu sync.Mutex
+	nativeTables   = map[BlockRegistry]*nativeTable{}
+
+	internedMu     sync.Mutex
+	internedStates = map[string]internedState{}
+)
+
+type internedState struct {
+	key   string
+	state BlockState
+}
+
+// nativeTableOf returns the shared lookup data of native, building it on the
+// first call. Registries that cannot be used as map keys are not cached.
+func nativeTableOf(native BlockRegistry) (*nativeTable, error) {
+	cacheable := reflect.TypeOf(native).Comparable()
+	if cacheable {
+		nativeTablesMu.Lock()
+		defer nativeTablesMu.Unlock()
+		if table, ok := nativeTables[native]; ok && len(table.states) == native.BlockCount() {
+			return table, nil
+		}
+	}
+	table, err := buildNativeTable(native)
+	if err != nil {
+		return nil, err
+	}
+	if cacheable {
+		nativeTables[native] = table
+	}
+	return table, nil
+}
+
+func buildNativeTable(native BlockRegistry) (*nativeTable, error) {
+	table := &nativeTable{
+		states:  make([]BlockState, native.BlockCount()),
+		byKey:   make(map[string]uint32, native.BlockCount()),
+		aliases: make(map[string]uint32),
+	}
+	for index := range native.BlockCount() {
+		runtimeID := uint32(index)
+		name, properties, ok := native.RuntimeIDToState(runtimeID)
+		if !ok {
+			return nil, fmt.Errorf("native runtime ID %d has no state", runtimeID)
+		}
+		key, err := StateKey(name, properties)
+		if err != nil {
+			return nil, fmt.Errorf("native runtime ID %d: %w", runtimeID, err)
+		}
+		if _, exists := table.byKey[key]; exists {
+			return nil, fmt.Errorf("duplicate native block state %s at runtime ID %d", name, runtimeID)
+		}
+		table.byKey[key] = runtimeID
+		aliasKey, err := StateKey(name, nativeCompatibilityProperties(name, properties))
+		if err != nil {
+			return nil, fmt.Errorf("native runtime ID %d compatibility alias: %w", runtimeID, err)
+		}
+		if aliasKey != key {
+			if existing, exists := table.aliases[aliasKey]; exists && existing != runtimeID {
+				return nil, fmt.Errorf("duplicate native compatibility state %s at runtime IDs %d and %d", name, existing, runtimeID)
+			}
+			table.aliases[aliasKey] = runtimeID
+		}
+		table.states[index] = BlockState{Name: name, Properties: cloneProperties(properties)}
+	}
+	return table, nil
+}
+
+// internState returns a canonical key and state sharing their memory with
+// every equal state of other protocols. Mapper states are never mutated, so
+// historical palettes of different protocols can share them.
+func internState(key string, state BlockState) (string, BlockState) {
+	internedMu.Lock()
+	defer internedMu.Unlock()
+	canonical, ok := internedStates[key]
+	if !ok {
+		canonical = internedState{key: key, state: BlockState{Name: state.Name, Properties: state.Properties}}
+		internedStates[key] = canonical
+	}
+	return canonical.key, BlockState{Name: canonical.state.Name, Properties: canonical.state.Properties, Version: state.Version}
+}
+
 func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bool) (*BlockMapper, error) {
 	if native == nil {
 		return nil, fmt.Errorf("native block registry is nil")
@@ -115,6 +209,7 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 		if _, exists := targetByKey[key]; exists {
 			return nil, fmt.Errorf("duplicate target block state %s at runtime ID %d", state.Name, index)
 		}
+		key, targetStates[index] = internState(key, state)
 		targetByKey[key] = uint32(index)
 		if state.Name == "minecraft:air" {
 			targetAir, foundAir = uint32(index), true
@@ -124,35 +219,11 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 		return nil, fmt.Errorf("target block registry has no minecraft:air state")
 	}
 
-	nativeByKey := make(map[string]uint32, native.BlockCount())
-	nativeAliases := make(map[string]uint32)
-	nativeStates := make([]BlockState, native.BlockCount())
-	for index := range native.BlockCount() {
-		runtimeID := uint32(index)
-		name, properties, ok := native.RuntimeIDToState(runtimeID)
-		if !ok {
-			return nil, fmt.Errorf("native runtime ID %d has no state", runtimeID)
-		}
-		key, err := StateKey(name, properties)
-		if err != nil {
-			return nil, fmt.Errorf("native runtime ID %d: %w", runtimeID, err)
-		}
-		if _, exists := nativeByKey[key]; exists {
-			return nil, fmt.Errorf("duplicate native block state %s at runtime ID %d", name, runtimeID)
-		}
-		nativeByKey[key] = runtimeID
-		aliasKey, err := StateKey(name, nativeCompatibilityProperties(name, properties))
-		if err != nil {
-			return nil, fmt.Errorf("native runtime ID %d compatibility alias: %w", runtimeID, err)
-		}
-		if aliasKey != key {
-			if existing, exists := nativeAliases[aliasKey]; exists && existing != runtimeID {
-				return nil, fmt.Errorf("duplicate native compatibility state %s at runtime IDs %d and %d", name, existing, runtimeID)
-			}
-			nativeAliases[aliasKey] = runtimeID
-		}
-		nativeStates[index] = BlockState{Name: name, Properties: cloneProperties(properties)}
+	table, err := nativeTableOf(native)
+	if err != nil {
+		return nil, err
 	}
+	nativeByKey, nativeAliases, nativeStates := table.byKey, table.aliases, table.states
 
 	targetToNative := make([]uint32, len(targetStates))
 	targetCompatibleByNativeKey := make(map[string]uint32, len(targetStates))
@@ -305,7 +376,7 @@ func newBlockMapper(native BlockRegistry, historical []BlockState, sortTarget bo
 		fallbacks = append(fallbacks, BlockFallback{
 			NativeRuntimeID: uint32(runtimeID),
 			Name:            state.Name,
-			Properties:      cloneProperties(state.Properties),
+			Properties:      state.Properties,
 			TargetRuntimeID: targetAir,
 		})
 	}
