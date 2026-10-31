@@ -103,6 +103,15 @@ func (p Protocol) MapBlockRuntimeID(runtimeID uint32) (uint32, bool) {
 	return target, valid
 }
 
+// UnmapBlockRuntimeID maps a runtime ID written by MapBlockRuntimeID back to
+// the exact current native runtime ID.
+func (p Protocol) UnmapBlockRuntimeID(runtimeID uint32) (uint32, bool) {
+	if p.runtime == nil || p.runtime.blocks == nil {
+		return 0, false
+	}
+	return p.runtime.blocks.TargetToNative(runtimeID)
+}
+
 func (p Protocol) MappingReport() MappingReport {
 	if p.runtime == nil {
 		return MappingReport{}

@@ -90,6 +90,19 @@ func (p *lazyProtocol) MapBlockRuntimeID(runtimeID uint32) (uint32, bool) {
 	return 0, false
 }
 
+// UnmapBlockRuntimeID maps a runtime ID written by MapBlockRuntimeID back to
+// the exact current native runtime ID.
+func (p *lazyProtocol) UnmapBlockRuntimeID(runtimeID uint32) (uint32, bool) {
+	proto, err := p.load()
+	if err != nil {
+		return 0, false
+	}
+	if mapper, ok := proto.(interface{ UnmapBlockRuntimeID(uint32) (uint32, bool) }); ok {
+		return mapper.UnmapBlockRuntimeID(runtimeID)
+	}
+	return 0, false
+}
+
 func (p *lazyProtocol) MapBiomeRuntimeID(id uint32) (uint32, bool) {
 	proto, err := p.load()
 	if err != nil {
@@ -169,7 +182,9 @@ func (p *lazyProtocol116) ConvertBlockActorNBT(data map[string]any) map[string]a
 	if err != nil {
 		return data
 	}
-	if c, ok := proto.(interface{ ConvertBlockActorNBT(map[string]any) map[string]any }); ok {
+	if c, ok := proto.(interface {
+		ConvertBlockActorNBT(map[string]any) map[string]any
+	}); ok {
 		return c.ConvertBlockActorNBT(data)
 	}
 	return data

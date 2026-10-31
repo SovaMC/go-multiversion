@@ -70,6 +70,18 @@ func (p Protocol) MapBlockRuntimeID(runtimeID uint32) (uint32, bool) {
 	return mapper.MapBlockRuntimeID(runtimeID)
 }
 
+// UnmapBlockRuntimeID maps a runtime ID written by MapBlockRuntimeID back to
+// the exact current native runtime ID.
+func (p Protocol) UnmapBlockRuntimeID(runtimeID uint32) (uint32, bool) {
+	mapper, ok := p.baseProtocol().(interface {
+		UnmapBlockRuntimeID(uint32) (uint32, bool)
+	})
+	if !ok {
+		return 0, false
+	}
+	return mapper.UnmapBlockRuntimeID(runtimeID)
+}
+
 func (p Protocol) Packets(listener bool) packet.Pool {
 	pool := p.baseProtocol().Packets(listener)
 	if !listener {
