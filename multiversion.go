@@ -3,6 +3,8 @@
 package multiversion
 
 import (
+	"fmt"
+
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/shawtymarco/go-multiversion/mapping"
@@ -186,133 +188,51 @@ func V1_21_130WithBlockRegistry(native mapping.BlockRegistry) (minecraft.Protoco
 // ProtocolsWithBlockRegistry returns all verified non-native protocols,
 // including protocol 1001 configured against the current block registry.
 func ProtocolsWithBlockRegistry(native mapping.BlockRegistry) ([]minecraft.Protocol, error) {
-	u50, err := v1_26_50.NewWithBlockRegistry(native)
-	if err != nil {
-		return nil, err
+	if native == nil {
+		return nil, fmt.Errorf("native block registry is nil")
 	}
-	u45, err := v1_26_45.NewWithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	u44, err := v1_26_44.NewWithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	legacy, err := V1_26_30WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	u2, err := V1_26_20WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	u1, err := V1_26_10WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	u0, err := V1_26_0WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	r21u13, err := V1_21_130WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	older, err := V1_21_110WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	oldest, err := V1_21_100WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	r21u5, err := V1_21_50WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	r21u4, err := V1_21_40WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	v486, err := V1_18_10WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	v475, err := V1_18_0WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	v419, err := V1_16_100WithBlockRegistry(native)
-	if err != nil {
-		return nil, err
-	}
-	return []minecraft.Protocol{u44, legacy, u2, u1, u0, r21u13, older, oldest, r21u5, r21u4, v486, v475, v419, u45, u50}, nil
+	return []minecraft.Protocol{
+		newLazy(v1_26_44.ID, v1_26_44.Version, func() (minecraft.Protocol, error) { return v1_26_44.NewWithBlockRegistry(native) }),
+		newLazy(v1_26_30.ID, v1_26_30.Version, func() (minecraft.Protocol, error) { return V1_26_30WithBlockRegistry(native) }),
+		newLazy(v1_26_20.ID, v1_26_20.Version, func() (minecraft.Protocol, error) { return V1_26_20WithBlockRegistry(native) }),
+		newLazy(v1_26_10.ID, v1_26_10.Version, func() (minecraft.Protocol, error) { return V1_26_10WithBlockRegistry(native) }),
+		newLazy(v1_26_0.ID, v1_26_0.Version, func() (minecraft.Protocol, error) { return V1_26_0WithBlockRegistry(native) }),
+		newLazy(v1_21_130.ID, v1_21_130.Version, func() (minecraft.Protocol, error) { return V1_21_130WithBlockRegistry(native) }),
+		newLazy(v1_21_110.ID, v1_21_110.Version, func() (minecraft.Protocol, error) { return V1_21_110WithBlockRegistry(native) }),
+		newLazy(v1_21_100.ID, v1_21_100.Version, func() (minecraft.Protocol, error) { return V1_21_100WithBlockRegistry(native) }),
+		newLazy(v1_21_50.ID, v1_21_50.Version, func() (minecraft.Protocol, error) { return V1_21_50WithBlockRegistry(native) }),
+		newLazy(v1_21_40.ID, v1_21_40.Version, func() (minecraft.Protocol, error) { return V1_21_40WithBlockRegistry(native) }),
+		newLazy118(v1_18_10.ID, v1_18_10.Version, func() (minecraft.Protocol, error) { return V1_18_10WithBlockRegistry(native) }),
+		newLazy118(v1_18_0.ID, v1_18_0.Version, func() (minecraft.Protocol, error) { return V1_18_0WithBlockRegistry(native) }),
+		newLazy116(v1_16_100.ID, v1_16_100.Version, func() (minecraft.Protocol, error) { return V1_16_100WithBlockRegistry(native) }),
+		newLazy(v1_26_45.ID, v1_26_45.Version, func() (minecraft.Protocol, error) { return v1_26_45.NewWithBlockRegistry(native) }),
+		newLazy(v1_26_50.ID, v1_26_50.Version, func() (minecraft.Protocol, error) { return v1_26_50.NewWithBlockRegistry(native) }),
+	}, nil
 }
 
 // ProtocolsWithRegistries returns all verified adapters after eagerly
 // validating the current block and item registries.
 func ProtocolsWithRegistries(native mapping.BlockRegistry, nativeItems []protocol.ItemEntry) ([]minecraft.Protocol, error) {
-	u50, err := v1_26_50.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
+	if native == nil {
+		return nil, fmt.Errorf("native block registry is nil")
 	}
-	u45, err := v1_26_45.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	u44, err := v1_26_44.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	legacy, err := v1_26_30.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	u2, err := v1_26_20.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	u1, err := v1_26_10.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	u0, err := v1_26_0.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	r21u13, err := v1_21_130.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	older, err := v1_21_110.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	oldest, err := v1_21_100.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	r21u5, err := v1_21_50.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	r21u4, err := v1_21_40.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	v486, err := v1_18_10.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	v475, err := v1_18_0.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	v419, err := v1_16_100.NewWithRegistries(native, nativeItems)
-	if err != nil {
-		return nil, err
-	}
-	return []minecraft.Protocol{u44, legacy, u2, u1, u0, r21u13, older, oldest, r21u5, r21u4, v486, v475, v419, u45, u50}, nil
+	return []minecraft.Protocol{
+		newLazy(v1_26_44.ID, v1_26_44.Version, func() (minecraft.Protocol, error) { return v1_26_44.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_26_30.ID, v1_26_30.Version, func() (minecraft.Protocol, error) { return v1_26_30.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_26_20.ID, v1_26_20.Version, func() (minecraft.Protocol, error) { return v1_26_20.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_26_10.ID, v1_26_10.Version, func() (minecraft.Protocol, error) { return v1_26_10.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_26_0.ID, v1_26_0.Version, func() (minecraft.Protocol, error) { return v1_26_0.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_130.ID, v1_21_130.Version, func() (minecraft.Protocol, error) { return v1_21_130.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_110.ID, v1_21_110.Version, func() (minecraft.Protocol, error) { return v1_21_110.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_100.ID, v1_21_100.Version, func() (minecraft.Protocol, error) { return v1_21_100.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_50.ID, v1_21_50.Version, func() (minecraft.Protocol, error) { return v1_21_50.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_40.ID, v1_21_40.Version, func() (minecraft.Protocol, error) { return v1_21_40.NewWithRegistries(native, nativeItems) }),
+		newLazy118(v1_18_10.ID, v1_18_10.Version, func() (minecraft.Protocol, error) { return v1_18_10.NewWithRegistries(native, nativeItems) }),
+		newLazy118(v1_18_0.ID, v1_18_0.Version, func() (minecraft.Protocol, error) { return v1_18_0.NewWithRegistries(native, nativeItems) }),
+		newLazy116(v1_16_100.ID, v1_16_100.Version, func() (minecraft.Protocol, error) { return v1_16_100.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_26_45.ID, v1_26_45.Version, func() (minecraft.Protocol, error) { return v1_26_45.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_26_50.ID, v1_26_50.Version, func() (minecraft.Protocol, error) { return v1_26_50.NewWithRegistries(native, nativeItems) }),
+	}, nil
 }
 
 // V1_26_44 returns the Minecraft protocol 2168 family adapter. The adapter

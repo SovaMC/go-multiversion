@@ -67,7 +67,7 @@ type (
 func BlockStates() ([]BlockState, error) {
 	reader := bytes.NewReader(blockStateData)
 	decoder := nbt.NewDecoder(reader)
-	states := make([]BlockState, 0, 1<<16)
+	states := make([]BlockState, 0, 12500)
 	for {
 		var state BlockState
 		if err := decoder.Decode(&state); err != nil {
