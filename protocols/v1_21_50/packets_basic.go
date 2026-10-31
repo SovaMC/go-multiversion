@@ -123,7 +123,7 @@ func marshalClientboundUpdateSoundData(io *wireIO, raw packet.Packet) {
 	event := "Stop"
 	io.String(&event)
 	if io.reading {
-		pk.Stop = protocol.SoundDataUpdate{Type: protocol.SoundDataUpdateStop}
+		pk.Update = protocol.SoundDataUpdate{Type: protocol.SoundDataUpdateStop}
 	}
 }
 
@@ -300,7 +300,7 @@ func marshalStructureBlockUpdate(io *wireIO, raw packet.Packet) {
 	io.UBlockPos(&pk.Position)
 	io.String(&pk.StructureName)
 	if io.reading {
-		pk.FilteredStructureName = ""
+		pk.FilteredStructureName = protocol.Optional[string]{}
 	}
 	io.String(&pk.DataField)
 	io.Bool(&pk.IncludePlayers)

@@ -50,7 +50,7 @@ func wireFixtures() []packetFixture {
 		{name: "camera_instruction", new: func() packet.Packet {
 			return &packet.CameraInstruction{
 				FieldOfView: protocol.Option(protocol.CameraInstructionFieldOfView{FieldOfView: 80, EaseTime: 1, EaseType: protocol.EasingTypeInQuad}),
-				Spline:      protocol.Option(protocol.CameraSplineInstruction{TotalTime: 2, SplineType: protocol.Option(uint8(1)), Curve: []mgl32.Vec3{{1, 2, 3}}, ProgressKeyFrames: []protocol.CameraProgressOption{{Value: 1, Time: 2, EaseType: protocol.EasingTypeOutQuad}}, RotationOptions: []protocol.CameraRotationOption{{Value: mgl32.Vec3{4, 5, 6}, Time: 3, EaseType: protocol.EasingTypeInOutQuad}}}),
+				Spline:      protocol.Option(protocol.CameraSplineInstruction{TotalTime: 2, SplineType: 1, Curve: []mgl32.Vec3{{1, 2, 3}}, ProgressKeyFrames: []protocol.CameraProgressOption{{Value: 1, Time: 2, EaseType: protocol.EasingTypeOutQuad}}, RotationOptions: []protocol.CameraRotationOption{{Value: mgl32.Vec3{4, 5, 6}, Time: 3, EaseType: protocol.EasingTypeInOutQuad}}}),
 			}
 		}},
 		{name: "client_cache_blob_status", new: func() packet.Packet {
@@ -279,7 +279,7 @@ func wireFixtures() []packetFixture {
 			return &packet.PlayerEnchantOptions{Options: []protocol.EnchantmentOption{{Cost: 30, Name: "option", RecipeNetworkID: 7}}}
 		}},
 		{name: "full/player_skin", new: func() packet.Packet {
-			return &packet.PlayerSkin{UUID: uuid.MustParse("11111111-1111-1111-1111-111111111111"), Skin: protocol.Skin{SkinID: "skin", PlayFabID: "pf", CapeID: "cape", FullID: "full", ArmSize: protocol.ArmSizeWide, SkinColour: color.RGBA{R: 1, G: 2, B: 3, A: 255}}, NewSkinName: "new", OldSkinName: "old"}
+			return &packet.PlayerSkin{UUID: uuid.MustParse("11111111-1111-1111-1111-111111111111"), Skin: protocol.Skin{SkinID: "skin", CapeID: "cape", FullID: "full", ArmSize: protocol.ArmSizeWide, SkinColour: color.RGBA{R: 1, G: 2, B: 3, A: 255}}, NewSkinName: "new", OldSkinName: "old"}
 		}},
 		{name: "full/resource_pack_client_response", new: func() packet.Packet {
 			return &packet.ResourcePackClientResponse{Response: packet.PackResponseSendPacks, PacksToDownload: []string{"pack_1.0.0"}}
@@ -530,7 +530,7 @@ func TestUnsupportedPacketsAreDropped(t *testing.T) {
 		t.Fatalf("ServerPlayerPostMovePosition conversion count: got %d, want 0", len(got))
 	}
 	update := &packet.ClientboundUpdateSoundData{
-		Resume: protocol.SoundDataUpdate{Type: protocol.SoundDataUpdateSetVolume, Volume: 0.5},
+		Update: protocol.SoundDataUpdate{Type: protocol.SoundDataUpdateSetVolume, Volume: 0.5},
 	}
 	if got := (Protocol{}).ConvertFromLatest(update, nil); len(got) != 0 {
 		t.Fatalf("sound update conversion count: got %d, want 0", len(got))
