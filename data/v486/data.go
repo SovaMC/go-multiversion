@@ -129,3 +129,12 @@ func RawSnapshot(name string) ([]byte, bool) {
 	}
 	return bytes.Clone(data), true
 }
+
+//go:embed entity_identifiers.nbt
+var entityIdentifierData []byte
+
+// EntityIdentifiers returns the serialised AvailableActorIdentifiers list of
+// the client.
+func EntityIdentifiers() []byte {
+	return entityIdentifierData
+}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
+	"github.com/shawtymarco/go-multiversion/internal/actors"
 	"github.com/shawtymarco/go-multiversion/mapping"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_16_100"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_18_0"
@@ -240,4 +241,11 @@ func ProtocolsWithRegistries(native mapping.BlockRegistry, nativeItems []protoco
 // API compatibility.
 func V1_26_44() minecraft.Protocol {
 	return v1_26_44.New()
+}
+
+// MapEntity registers a replacement shown to historical clients for an entity
+// identifier they do not know, such as a custom projectile. Without one, such
+// entities are shown as pigs.
+func MapEntity(from, to string) {
+	actors.Map(from, to)
 }

@@ -174,7 +174,7 @@ func (p *lazyProtocol116) NetworkBiomes2D() bool {
 }
 
 func (p *lazyProtocol116) NetworkChunkRadiusLimit() int {
-	return 9
+	return 4
 }
 
 func (p *lazyProtocol116) ConvertBlockActorNBT(data map[string]any) map[string]any {

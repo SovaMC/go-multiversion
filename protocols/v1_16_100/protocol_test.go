@@ -34,8 +34,8 @@ func TestProtocolIdentityAndCapabilities(t *testing.T) {
 	if p.NetworkSubChunkVersion() != 8 || !p.NetworkBiomes2D() || p.ReuseBiomePalettes() {
 		t.Fatal("protocol 419 chunk capabilities are inconsistent")
 	}
-	if p.NetworkChunkRadiusLimit() != 9 {
-		t.Fatalf("legacy chunk radius limit: got %d, want 9", p.NetworkChunkRadiusLimit())
+	if p.NetworkChunkRadiusLimit() != 4 {
+		t.Fatalf("legacy chunk radius limit: got %d, want 4", p.NetworkChunkRadiusLimit())
 	}
 	first, second := p.Encryption([32]byte{1}), p.Encryption([32]byte{1})
 	if first == second {

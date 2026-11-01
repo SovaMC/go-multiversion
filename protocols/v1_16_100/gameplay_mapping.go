@@ -179,8 +179,11 @@ func (p Protocol) convertGameplayFromLatest(pk packet.Packet, conn *minecraft.Co
 		return []packet.Packet{&cloned}
 	case *packet.AddActor:
 		cloned := *current
+		cloned.EntityType = targetActors.Translate(cloned.EntityType)
 		mapFallingBlockMetadata(&cloned, p.runtime.blocks, toTarget)
 		return []packet.Packet{&cloned}
+	case *packet.AvailableActorIdentifiers:
+		return []packet.Packet{targetActorIdentifiers()}
 	default:
 		return []packet.Packet{pk}
 	}

@@ -89,11 +89,12 @@ func (Protocol) NetworkSubChunkVersion() byte { return 8 }
 // NetworkBiomes2D reports that protocol 419 carries one biome byte per X/Z column.
 func (Protocol) NetworkBiomes2D() bool { return true }
 
-// NetworkChunkRadiusLimit caps the initial chunk radius for retail 1.16.100.
-// The client crashes while consuming the outer ring of a radius-10 lobby
-// stream, but remains stable at radius 9. Newer protocols keep the server's
-// configured limit.
-func (Protocol) NetworkChunkRadiusLimit() int { return 9 }
+// NetworkChunkRadiusLimit caps the chunk radius for retail 1.16.100. The
+// client freezes and crashes while consuming dense chunk streams: a radius-10
+// lobby already crashes it, and tall builds crash it at radius 8. Radius 4
+// matches the PocketMine servers it stays stable on. Newer protocols keep the
+// server's configured limit.
+func (Protocol) NetworkChunkRadiusLimit() int { return 4 }
 
 func (p Protocol) MapBlockRuntimeID(runtimeID uint32) (uint32, bool) {
 	if p.runtime == nil || p.runtime.blocks == nil {
