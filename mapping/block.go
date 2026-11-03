@@ -175,13 +175,15 @@ func buildNativeTable(native BlockRegistry) (*nativeTable, error) {
 		if err != nil {
 			return nil, fmt.Errorf("native runtime ID %d compatibility alias: %w", runtimeID, err)
 		}
-		if aliasKey != key {
+		if aliasKey == key {
+			aliasKey = key
+		} else {
 			if existing, exists := table.aliases[aliasKey]; exists && existing != runtimeID {
 				return nil, fmt.Errorf("duplicate native compatibility state %s at runtime IDs %d and %d", name, existing, runtimeID)
 			}
 			table.aliases[aliasKey] = runtimeID
 		}
-		table.states[index] = BlockState{Name: name, Properties: cloneProperties(properties)}
+		table.states[index] = BlockState{Name: name, Properties: properties}
 		table.keys[index], table.aliasKeys[index] = key, aliasKey
 		stripped := stripNativeCompatibilityProperties(properties)
 		table.compatibleKeys[index], table.stripped[index] = key, len(stripped) != len(properties)
