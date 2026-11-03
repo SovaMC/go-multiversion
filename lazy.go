@@ -131,6 +131,18 @@ func (p *lazyProtocol) Unwrap() (minecraft.Protocol, error) {
 	return p.load()
 }
 
+// lazyProtocol120 marks protocols from before 1.20.60, whose batches have no compression algorithm byte.
+type lazyProtocol120 struct {
+	*lazyProtocol
+}
+
+func newLazy120(id int32, ver string, builder func() (minecraft.Protocol, error)) *lazyProtocol120 {
+	return &lazyProtocol120{lazyProtocol: newLazy(id, ver, builder)}
+}
+
+// UnprefixedCompression ...
+func (p *lazyProtocol120) UnprefixedCompression() bool { return true }
+
 type lazyProtocol118 struct {
 	*lazyProtocol
 }
