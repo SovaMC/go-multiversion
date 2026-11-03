@@ -380,3 +380,32 @@ func marshalCorrectPlayerMovePrediction(io *wireIO, raw packet.Packet) {
 	io.Bool(&pk.OnGround)
 	io.Varuint64(&pk.Tick)
 }
+
+func marshalCameraPresets818(io *wireIO, raw packet.Packet) {
+	pk := raw.(*packet.CameraPresets)
+	protocol.FuncIOSlice(io.directional(), &pk.Presets, func(raw protocol.IO, preset *protocol.CameraPreset) {
+		legacy := asWireIO(raw)
+		legacy.String(&preset.Name)
+		legacy.String(&preset.Parent)
+		protocol.OptionalFunc(legacy.directional(), &preset.PosX, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.PosY, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.PosZ, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.RotX, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.RotY, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.RotationSpeed, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.SnapToTarget, legacy.Bool)
+		protocol.OptionalFunc(legacy.directional(), &preset.HorizontalRotationLimit, legacy.Vec2)
+		protocol.OptionalFunc(legacy.directional(), &preset.VerticalRotationLimit, legacy.Vec2)
+		protocol.OptionalFunc(legacy.directional(), &preset.ContinueTargeting, legacy.Bool)
+		protocol.OptionalFunc(legacy.directional(), &preset.TrackingRadius, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.ViewOffset, legacy.Vec2)
+		protocol.OptionalFunc(legacy.directional(), &preset.EntityOffset, legacy.Vec3)
+		protocol.OptionalFunc(legacy.directional(), &preset.Radius, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.MinYawLimit, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.MaxYawLimit, legacy.Float32)
+		protocol.OptionalFunc(legacy.directional(), &preset.AudioListener, legacy.Uint8)
+		protocol.OptionalFunc(legacy.directional(), &preset.PlayerEffects, legacy.Bool)
+		protocol.OptionalMarshaler(legacy.directional(), &preset.AimAssist)
+		protocol.OptionalFunc(legacy.directional(), &preset.ControlScheme, legacy.Uint8)
+	})
+}

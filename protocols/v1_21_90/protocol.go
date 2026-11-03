@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	// ID is the Minecraft Bedrock 1.21.10x protocol ID.
+	// ID is the protocol ID of Minecraft 1.21.90-1.21.94.
 	ID int32 = 818
-	// Version is the newest stable Minecraft version in the protocol 818 family.
+	// Version is the Minecraft version of protocol 818.
 	Version = "1.21.90"
 	// Hotfix is the protocol ID of Minecraft 1.21.93, which only changed the number.
 	Hotfix int32 = 819
@@ -26,8 +26,8 @@ const (
 	HotfixVersion = "1.21.93"
 )
 
-// Protocol implements minecraft.Protocol for stable Minecraft 1.21.100 through
-// 1.21.102. Registry-aware consumers may advertise it after construction.
+// Protocol implements minecraft.Protocol for stable Minecraft 1.21.90-1.21.94.
+// Registry-aware consumers may advertise it after construction.
 type Protocol struct {
 	runtime *runtimeData
 	hotfix  bool

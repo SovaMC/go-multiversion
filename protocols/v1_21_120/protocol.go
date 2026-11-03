@@ -1,4 +1,4 @@
-// Package v1_21_120 implements the Minecraft Bedrock 1.21.120-1.21.124 protocol 859
+// Package v1_21_120 implements Minecraft 1.21.120-1.21.124 against the current native model.
 // family against the current native gophertunnel model.
 package v1_21_120
 
@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	// ID is the Minecraft Bedrock 1.21.120-1.21.124 protocol ID.
+	// ID is the protocol ID of Minecraft 1.21.120-1.21.124.
 	ID int32 = 859
 	// Version is the Minecraft version of protocol 859.
 	Version = "1.21.120"
@@ -26,8 +26,8 @@ const (
 	HotfixVersion = "1.21.124"
 )
 
-// Protocol implements minecraft.Protocol for stable Minecraft 1.21.120 through
-// 1.21.120. It is intentionally not included in multiversion.Protocols until
+// Protocol implements minecraft.Protocol for stable Minecraft 1.21.120-1.21.124.
+// Registry-aware consumers may advertise it after construction.
 // registry and chunk conversion are complete.
 type Protocol struct {
 	runtime *runtimeData

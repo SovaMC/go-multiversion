@@ -3,6 +3,7 @@ package v1_21_90
 import "github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 
 var packetMarshals = map[uint32]packetMarshal{
+	packet.IDCameraPresets:                marshalCameraPresets818,
 	packet.IDCorrectPlayerMovePrediction:  marshalCorrectPlayerMovePrediction,
 	packet.IDCameraAimAssist:              marshalCameraAimAssist,
 	packet.IDAddPlayer:                    marshalAddPlayer,
