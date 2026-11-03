@@ -69,7 +69,6 @@ var packetMarshals = map[uint32]packetMarshal{
 	packet.IDServerBoundDiagnostics:       marshalServerBoundDiagnostics,
 	packet.IDSetScore:                     marshalSetScore,
 	packet.IDSetHud:                       marshalSetHud712,
-	packet.IDSetPlayerInventoryOptions:    marshalSetPlayerInventoryOptions712,
 	packet.IDSetScoreboardIdentity:        marshalSetScoreboardIdentity,
 	packet.IDSetSpawnPosition:             marshalSetSpawnPosition,
 	packet.IDShowStoreOffer:               marshalShowStoreOffer,

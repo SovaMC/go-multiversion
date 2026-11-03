@@ -110,18 +110,3 @@ func marshalSetHud712(io *wireIO, raw packet.Packet) {
 		pk.Visibility = int32(visibility)
 	}
 }
-
-func marshalSetPlayerInventoryOptions712(io *wireIO, raw packet.Packet) {
-	pk := raw.(*packet.SetPlayerInventoryOptions)
-	left, right := byte(pk.LeftInventoryTab), byte(pk.RightInventoryTab)
-	inventory, crafting := byte(pk.InventoryLayout), byte(pk.CraftingLayout)
-	io.Uint8(&left)
-	io.Uint8(&right)
-	io.Bool(&pk.Filtering)
-	io.Uint8(&inventory)
-	io.Uint8(&crafting)
-	if io.reading {
-		pk.LeftInventoryTab, pk.RightInventoryTab = int32(left), int32(right)
-		pk.InventoryLayout, pk.CraftingLayout = int32(inventory), int32(crafting)
-	}
-}

@@ -86,3 +86,9 @@ func marshalSetActorMotion649(io *wireIO, raw packet.Packet) {
 	io.ActorRuntimeID(&pk.EntityRuntimeID)
 	io.Vec3(&pk.Velocity)
 }
+
+func marshalContainerClose649(io *wireIO, raw packet.Packet) {
+	pk := raw.(*packet.ContainerClose)
+	io.Uint8(&pk.WindowID)
+	io.Bool(&pk.ServerSide)
+}

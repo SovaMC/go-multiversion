@@ -74,3 +74,9 @@ func marshalStopSound671(io *wireIO, raw packet.Packet) {
 	io.String(&pk.SoundName)
 	io.Bool(&pk.StopAll)
 }
+
+func marshalContainerClose671(io *wireIO, raw packet.Packet) {
+	pk := raw.(*packet.ContainerClose)
+	io.Uint8(&pk.WindowID)
+	io.Bool(&pk.ServerSide)
+}

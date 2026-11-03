@@ -3,6 +3,7 @@ package v1_20_60
 import "github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 
 var packetMarshals = map[uint32]packetMarshal{
+	packet.IDContainerClose:               marshalContainerClose649,
 	packet.IDSetActorMotion:               marshalSetActorMotion649,
 	packet.IDUpdatePlayerGameType:         marshalUpdatePlayerGameType649,
 	packet.IDStopSound:                    marshalStopSound649,
@@ -76,7 +77,6 @@ var packetMarshals = map[uint32]packetMarshal{
 	packet.IDServerBoundDiagnostics:       marshalServerBoundDiagnostics,
 	packet.IDSetScore:                     marshalSetScore,
 	packet.IDSetHud:                       marshalSetHud649,
-	packet.IDSetPlayerInventoryOptions:    marshalSetPlayerInventoryOptions649,
 	packet.IDSetScoreboardIdentity:        marshalSetScoreboardIdentity,
 	packet.IDSetSpawnPosition:             marshalSetSpawnPosition,
 	packet.IDShowStoreOffer:               marshalShowStoreOffer,

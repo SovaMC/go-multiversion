@@ -134,7 +134,7 @@ func marshalUpdateSubChunkBlocks(io *wireIO, raw packet.Packet) {
 
 func marshalBlockChangeEntry589(raw protocol.IO, entry *protocol.BlockChangeEntry) {
 	io := asWireIO(raw)
-	io.BlockPos(&entry.BlockPos)
+	io.UBlockPos(&entry.BlockPos)
 	io.Varuint32(&entry.BlockRuntimeID)
 	io.Varuint32(&entry.Flags)
 	io.Varuint64(&entry.SyncedUpdateEntityUniqueID)

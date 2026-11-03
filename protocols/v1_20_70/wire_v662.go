@@ -80,3 +80,9 @@ func marshalUpdatePlayerGameType662(io *wireIO, raw packet.Packet) {
 	io.Varint32(&pk.GameType)
 	io.ActorUniqueID(&pk.PlayerUniqueID)
 }
+
+func marshalContainerClose662(io *wireIO, raw packet.Packet) {
+	pk := raw.(*packet.ContainerClose)
+	io.Uint8(&pk.WindowID)
+	io.Bool(&pk.ServerSide)
+}

@@ -1,7 +1,6 @@
 package v1_20_50
 
 import (
-	"github.com/go-gl/mathgl/mgl32"
 	"image/color"
 
 	"github.com/google/uuid"
@@ -227,11 +226,7 @@ func marshalMobEquipment(io *wireIO, raw packet.Packet) {
 func marshalPlaySound(io *wireIO, raw packet.Packet) {
 	pk := raw.(*packet.PlaySound)
 	io.String(&pk.SoundName)
-	position := protocol.BlockPos{int32(pk.Position[0] * 8), int32(pk.Position[1] * 8), int32(pk.Position[2] * 8)}
-	io.BlockPos(&position)
-	if io.reading {
-		pk.Position = mgl32.Vec3{float32(position[0]) / 8, float32(position[1]) / 8, float32(position[2]) / 8}
-	}
+	io.SoundPos(&pk.Position)
 	io.Float32(&pk.Volume)
 	io.Float32(&pk.Pitch)
 	if io.reading {
