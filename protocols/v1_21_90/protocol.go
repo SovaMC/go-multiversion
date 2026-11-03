@@ -93,6 +93,11 @@ func (p Protocol) Ver() string {
 	return Version
 }
 
+// NewHotfixWithBlockRegistry creates the adapter of the Hotfix protocol from a native block registry.
+func NewHotfixWithBlockRegistry(native mapping.BlockRegistry) (minecraft.Protocol, error) {
+	return NewHotfixWithRegistries(native, nil)
+}
+
 // NewHotfixWithRegistries creates the adapter of the Hotfix protocol, which has the same wire and registries.
 func NewHotfixWithRegistries(native mapping.BlockRegistry, nativeItems []protocol.ItemEntry) (minecraft.Protocol, error) {
 	runtime, err := newRuntimeData(native, nativeItems)
