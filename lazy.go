@@ -2,6 +2,7 @@ package multiversion
 
 import (
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/sandertv/gophertunnel/minecraft"
@@ -31,6 +32,7 @@ func (p *lazyProtocol) load() (minecraft.Protocol, error) {
 		p.proto, p.err = p.builder()
 		if p.err != nil {
 			p.proto = nil
+			slog.Error("protocol adapter failed to load", "protocol", p.id, "version", p.ver, "error", p.err)
 		}
 	})
 	return p.proto, p.err
