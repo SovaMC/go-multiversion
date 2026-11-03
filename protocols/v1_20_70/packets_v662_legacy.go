@@ -79,6 +79,7 @@ func marshalCorrectPlayerMovePrediction662(io *wireIO, raw packet.Packet) {
 	io.Vec3(&pk.Delta)
 	io.Bool(&pk.OnGround)
 	io.Varuint64(&pk.Tick)
+	io.Uint8(&pk.PredictionType)
 }
 
 func marshalSetHud662(io *wireIO, raw packet.Packet) {

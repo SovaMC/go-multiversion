@@ -43,7 +43,7 @@ func marshalCraftingData(io *wireIO, raw packet.Packet) {
 				pk.MultiRecipes = append(pk.MultiRecipes, value)
 			case recipeUserDataShapeless:
 				var value protocol.UserDataShapelessRecipe
-				marshalShapelessRecipe(io, &value.ShapelessRecipe)
+				marshalUserDataRecipe(io, &value.ShapelessRecipe)
 				pk.UserDataShapelessRecipes = append(pk.UserDataShapelessRecipes, value)
 			case recipeShapelessChemistry:
 				var value protocol.ShapelessChemistryRecipe
@@ -92,7 +92,7 @@ func marshalCraftingData(io *wireIO, raw packet.Packet) {
 		}
 		for i := range pk.UserDataShapelessRecipes {
 			writeRecipeType(io, recipeUserDataShapeless)
-			marshalShapelessRecipe(io, &pk.UserDataShapelessRecipes[i].ShapelessRecipe)
+			marshalUserDataRecipe(io, &pk.UserDataShapelessRecipes[i].ShapelessRecipe)
 		}
 		for i := range pk.ShapelessChemistryRecipes {
 			writeRecipeType(io, recipeShapelessChemistry)
@@ -141,6 +141,16 @@ func marshalShapelessRecipe(io *wireIO, recipe *protocol.ShapelessRecipe) {
 	io.String(&recipe.Block)
 	io.Varint32(&recipe.Priority)
 	marshalLegacyRecipeUnlockRequirement(io, &recipe.UnlockRequirement)
+	io.Varuint32(&recipe.RecipeNetworkID)
+}
+
+func marshalUserDataRecipe(io *wireIO, recipe *protocol.ShapelessRecipe) {
+	io.String(&recipe.RecipeID)
+	protocol.FuncSlice(io.directional(), &recipe.Input, io.ItemDescriptorCount)
+	protocol.FuncSlice(io.directional(), &recipe.Output, io.Item)
+	io.UUID(&recipe.UUID)
+	io.String(&recipe.Block)
+	io.Varint32(&recipe.Priority)
 	io.Varuint32(&recipe.RecipeNetworkID)
 }
 

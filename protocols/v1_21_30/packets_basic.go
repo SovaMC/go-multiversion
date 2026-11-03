@@ -192,9 +192,7 @@ func marshalHurtArmour(io *wireIO, raw packet.Packet) {
 	pk := raw.(*packet.HurtArmour)
 	io.Varint32(&pk.Cause)
 	io.Varint32(&pk.Damage)
-	slots := int64(pk.ArmourSlots)
-	io.Varint64(&slots)
-	pk.ArmourSlots = uint64(slots)
+	io.Varuint64(&pk.ArmourSlots)
 }
 
 func marshalInventorySlot(io *wireIO, raw packet.Packet) {

@@ -283,8 +283,6 @@ func marshalCameraInstruction(io *wireIO, raw packet.Packet) {
 		protocol.OptionalFunc(io.directional(), &set.Position, io.Vec3)
 		protocol.OptionalFunc(io.directional(), &set.Rotation, io.Vec2)
 		protocol.OptionalFunc(io.directional(), &set.Facing, io.Vec3)
-		protocol.OptionalFunc(io.directional(), &set.ViewOffset, io.Vec2)
-		protocol.OptionalFunc(io.directional(), &set.EntityOffset, io.Vec3)
 		protocol.OptionalFunc(io.directional(), &set.Default, io.Bool)
 		if io.reading {
 			set.IgnoreStartingValuesComponent = false
