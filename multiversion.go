@@ -18,6 +18,7 @@ import (
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_130"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_40"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_50"
+	"github.com/shawtymarco/go-multiversion/protocols/v1_21_90"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_26_0"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_26_10"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_26_20"
@@ -229,6 +230,8 @@ func ProtocolsWithRegistries(native mapping.BlockRegistry, nativeItems []protoco
 		newLazy(v1_21_120.ID, v1_21_120.Version, func() (minecraft.Protocol, error) { return v1_21_120.NewWithRegistries(native, nativeItems) }),
 		newLazy(v1_21_110.ID, v1_21_110.Version, func() (minecraft.Protocol, error) { return v1_21_110.NewWithRegistries(native, nativeItems) }),
 		newLazy(v1_21_100.ID, v1_21_100.Version, func() (minecraft.Protocol, error) { return v1_21_100.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_90.Hotfix, v1_21_90.HotfixVersion, func() (minecraft.Protocol, error) { return v1_21_90.NewHotfixWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_90.ID, v1_21_90.Version, func() (minecraft.Protocol, error) { return v1_21_90.NewWithRegistries(native, nativeItems) }),
 		newLazy(v1_21_50.ID, v1_21_50.Version, func() (minecraft.Protocol, error) { return v1_21_50.NewWithRegistries(native, nativeItems) }),
 		newLazy(v1_21_40.ID, v1_21_40.Version, func() (minecraft.Protocol, error) { return v1_21_40.NewWithRegistries(native, nativeItems) }),
 		newLazy118(v1_18_10.ID, v1_18_10.Version, func() (minecraft.Protocol, error) { return v1_18_10.NewWithRegistries(native, nativeItems) }),
