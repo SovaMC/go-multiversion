@@ -81,7 +81,8 @@ func marshalStartGame(io *wireIO, raw packet.Packet) {
 	io.String(&pk.WorldName)
 	io.String(&pk.TemplateContentIdentity)
 	io.Bool(&pk.Trial)
-	movementType := int32(1)
+	// Server authoritative movement with rewind, without which clients ignore CorrectPlayerMovePrediction.
+	movementType := int32(2)
 	io.Varint32(&movementType)
 	io.Varint32(&pk.PlayerMovementSettings.RewindHistorySize)
 	io.Bool(&pk.PlayerMovementSettings.ServerAuthoritativeBlockBreaking)
