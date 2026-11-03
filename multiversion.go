@@ -12,10 +12,16 @@ import (
 	"github.com/shawtymarco/go-multiversion/protocols/v1_16_100"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_18_0"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_18_10"
+	"github.com/shawtymarco/go-multiversion/protocols/v1_20_60"
+	"github.com/shawtymarco/go-multiversion/protocols/v1_20_70"
+	"github.com/shawtymarco/go-multiversion/protocols/v1_20_80"
+	"github.com/shawtymarco/go-multiversion/protocols/v1_21_0"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_100"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_110"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_120"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_130"
+	"github.com/shawtymarco/go-multiversion/protocols/v1_21_20"
+	"github.com/shawtymarco/go-multiversion/protocols/v1_21_30"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_40"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_50"
 	"github.com/shawtymarco/go-multiversion/protocols/v1_21_60"
@@ -240,6 +246,13 @@ func ProtocolsWithRegistries(native mapping.BlockRegistry, nativeItems []protoco
 		newLazy(v1_21_60.ID, v1_21_60.Version, func() (minecraft.Protocol, error) { return v1_21_60.NewWithRegistries(native, nativeItems) }),
 		newLazy(v1_21_50.ID, v1_21_50.Version, func() (minecraft.Protocol, error) { return v1_21_50.NewWithRegistries(native, nativeItems) }),
 		newLazy(v1_21_40.ID, v1_21_40.Version, func() (minecraft.Protocol, error) { return v1_21_40.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_30.ID, v1_21_30.Version, func() (minecraft.Protocol, error) { return v1_21_30.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_20.ID, v1_21_20.Version, func() (minecraft.Protocol, error) { return v1_21_20.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_0.Hotfix, v1_21_0.HotfixVersion, func() (minecraft.Protocol, error) { return v1_21_0.NewHotfixWithRegistries(native, nativeItems) }),
+		newLazy(v1_21_0.ID, v1_21_0.Version, func() (minecraft.Protocol, error) { return v1_21_0.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_20_80.ID, v1_20_80.Version, func() (minecraft.Protocol, error) { return v1_20_80.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_20_70.ID, v1_20_70.Version, func() (minecraft.Protocol, error) { return v1_20_70.NewWithRegistries(native, nativeItems) }),
+		newLazy(v1_20_60.ID, v1_20_60.Version, func() (minecraft.Protocol, error) { return v1_20_60.NewWithRegistries(native, nativeItems) }),
 		newLazy118(v1_18_10.ID, v1_18_10.Version, func() (minecraft.Protocol, error) { return v1_18_10.NewWithRegistries(native, nativeItems) }),
 		newLazy118(v1_18_0.ID, v1_18_0.Version, func() (minecraft.Protocol, error) { return v1_18_0.NewWithRegistries(native, nativeItems) }),
 		newLazy116(v1_16_100.ID, v1_16_100.Version, func() (minecraft.Protocol, error) { return v1_16_100.NewWithRegistries(native, nativeItems) }),
