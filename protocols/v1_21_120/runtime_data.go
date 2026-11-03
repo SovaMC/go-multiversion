@@ -12,6 +12,7 @@ import (
 )
 
 type runtimeData struct {
+	hotfix      bool
 	blocks      *mapping.BlockMapper
 	targetItems map[string]mapping.TargetItem
 	creative    v859.CreativeData

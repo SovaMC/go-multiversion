@@ -105,6 +105,7 @@ func NewHotfixWithRegistries(native mapping.BlockRegistry, nativeItems []protoco
 	if err != nil {
 		return nil, err
 	}
+	runtime.hotfix = true
 	return &Protocol{runtime: runtime, hotfix: true}, nil
 }
 

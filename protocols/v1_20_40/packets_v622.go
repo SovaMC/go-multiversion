@@ -289,8 +289,7 @@ func marshalCameraInstruction(io *wireIO, raw packet.Packet) {
 		}
 	})
 	protocol.OptionalFunc(io.directional(), &pk.Clear, io.Bool)
-	var fade protocol.Optional[protocol.CameraInstructionFade]
-	protocol.OptionalMarshaler(io.directional(), &fade)
+	protocol.OptionalMarshaler(io.directional(), &pk.Fade)
 	if io.reading {
 		pk.FieldOfView = protocol.Optional[protocol.CameraInstructionFieldOfView]{}
 		pk.Spline = protocol.Optional[protocol.CameraSplineInstruction]{}

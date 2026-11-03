@@ -65,7 +65,7 @@ func marshalAnimate(io *wireIO, raw packet.Packet) {
 	pk.ActionType = uint8(actionType)
 	io.Varuint64(&pk.EntityRuntimeID)
 	io.Float32(&pk.Data)
-	if actionType == animateActionRowRight || actionType == animateActionRowLeft {
+	if (io.runtime == nil || !io.runtime.hotfix) && (actionType == animateActionRowRight || actionType == animateActionRowLeft) {
 		rowingTime := pk.Data
 		io.Float32(&rowingTime)
 		if io.reading {

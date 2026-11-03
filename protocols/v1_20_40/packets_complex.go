@@ -268,7 +268,9 @@ func marshalPlayerAuthInput(io *wireIO, raw packet.Packet) {
 	marshalInputFlags622(io, &pk.InputData)
 	io.Varuint32(&pk.InputMode)
 	io.Varuint32(&pk.PlayMode)
-	io.Varint32(&pk.InteractionModel)
+	interactionModel := uint32(pk.InteractionModel)
+	io.Varuint32(&interactionModel)
+	pk.InteractionModel = int32(interactionModel)
 	if pk.PlayMode == packet.PlayModeReality {
 		var gazeDirection mgl32.Vec3
 		io.Vec3(&gazeDirection)

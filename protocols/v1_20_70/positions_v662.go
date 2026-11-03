@@ -117,9 +117,7 @@ func marshalUpdateBlockSynced(io *wireIO, raw packet.Packet) {
 	io.Varuint32(&pk.NewBlockRuntimeID)
 	io.Varuint32(&pk.Flags)
 	io.Varuint32(&pk.Layer)
-	entityUniqueID := int64(pk.EntityUniqueID)
-	io.Varint64(&entityUniqueID)
-	pk.EntityUniqueID = uint64(entityUniqueID)
+	io.Varuint64(&pk.EntityUniqueID)
 	io.Varuint64(&pk.TransitionType)
 }
 

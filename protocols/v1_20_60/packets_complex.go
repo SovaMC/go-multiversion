@@ -269,7 +269,9 @@ func marshalPlayerAuthInput(io *wireIO, raw packet.Packet) {
 	marshalInputFlags649(io, &pk.InputData)
 	io.Varuint32(&pk.InputMode)
 	io.Varuint32(&pk.PlayMode)
-	io.Varint32(&pk.InteractionModel)
+	interactionModel := uint32(pk.InteractionModel)
+	io.Varuint32(&interactionModel)
+	pk.InteractionModel = int32(interactionModel)
 	if pk.PlayMode == packet.PlayModeReality {
 		var gazeDirection mgl32.Vec3
 		io.Vec3(&gazeDirection)
@@ -293,14 +295,6 @@ func marshalPlayerAuthInput(io *wireIO, raw packet.Packet) {
 	} else if io.reading {
 		pk.ItemStackRequest = protocol.Optional[protocol.ItemStackRequest]{}
 	}
-	if pk.InputData.Load(packet.InputFlagClientPredictedVehicle) {
-		vehicle, _ := pk.ClientPredictedVehicle.Value()
-		io.Varint64(&vehicle)
-		pk.ClientPredictedVehicle = protocol.Option(vehicle)
-	} else if io.reading {
-		pk.VehicleRotation = protocol.Optional[mgl32.Vec2]{}
-		pk.ClientPredictedVehicle = protocol.Optional[int64]{}
-	}
 	if pk.InputData.Load(packet.InputFlagPerformBlockActions) {
 		value, _ := pk.BlockActions.Value()
 		count := int32(len(value))
@@ -309,6 +303,14 @@ func marshalPlayerAuthInput(io *wireIO, raw packet.Packet) {
 		pk.BlockActions = protocol.Option(value)
 	} else if io.reading {
 		pk.BlockActions = protocol.Optional[[]protocol.PlayerBlockAction]{}
+	}
+	if pk.InputData.Load(packet.InputFlagClientPredictedVehicle) {
+		vehicle, _ := pk.ClientPredictedVehicle.Value()
+		io.Varint64(&vehicle)
+		pk.ClientPredictedVehicle = protocol.Option(vehicle)
+	} else if io.reading {
+		pk.VehicleRotation = protocol.Optional[mgl32.Vec2]{}
+		pk.ClientPredictedVehicle = protocol.Optional[int64]{}
 	}
 	io.Vec2(&pk.AnalogueMoveVector)
 	if io.reading {
